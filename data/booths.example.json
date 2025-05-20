@@ -1,0 +1,36 @@
+[
+  {
+    "id": "1",
+    "eventId": "1",
+    "name": "Bookworm's Corner",
+    "description": "Specializing in rare and collectible books, with a focus on Hong Kong history and culture.",
+    "products": ["Rare Books", "First Editions", "Local History", "Cultural Books"],
+    "contact": "+852 9876 5432",
+    "socialMedia": "@bookwormshk",
+    "location": {
+      "lat": 22.2819,
+      "lng": 114.1733,
+      "floor": "1",
+      "boothNumber": "A12"
+    },
+    "photos": ["booth1-1.jpg", "booth1-2.jpg"],
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "2",
+    "eventId": "2",
+    "name": "Lucky Flowers",
+    "description": "Traditional Lunar New Year flowers and plants, including orchids, kumquat trees, and lucky bamboo.",
+    "products": ["Orchids", "Kumquat Trees", "Lucky Bamboo", "Flower Arrangements"],
+    "contact": "+852 9876 5433",
+    "socialMedia": "@luckyflowershk",
+    "location": {
+      "lat": 22.2819,
+      "lng": 114.1733,
+      "section": "Flower Market",
+      "boothNumber": "F05"
+    },
+    "photos": ["booth2-1.jpg", "booth2-2.jpg"],
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+] 

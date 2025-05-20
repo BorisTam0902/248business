@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1",
+    "name": "Hong Kong Book Fair 2024",
+    "description": "The annual Hong Kong Book Fair is the city's largest book exhibition, featuring thousands of books from local and international publishers.",
+    "date": "2024-07-17",
+    "location": "Hong Kong Convention and Exhibition Centre",
+    "image": "book-fair.jpg",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "2",
+    "name": "Lunar New Year Market 2024",
+    "description": "Traditional Lunar New Year market at Victoria Park, featuring festive decorations, flowers, and traditional goods.",
+    "date": "2024-02-10",
+    "location": "Victoria Park",
+    "image": "lunar-market.jpg",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+] 
