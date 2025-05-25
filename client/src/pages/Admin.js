@@ -27,12 +27,20 @@ function Admin() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openEventDialog, setOpenEventDialog] = useState(false);
   const [openBoothDialog, setOpenBoothDialog] = useState(false);
-  const [formData, setFormData] = useState({
+  const [eventFormData, setEventFormData] = useState({
     name: '',
     description: '',
     date: '',
     location: '',
-    image: null,
+  });
+  const [boothFormData, setBoothFormData] = useState({
+    name: '',
+    description: '',
+    contact: '',
+    socialMedia: '',
+    location: '',
+    boothNumber: '',
+    photos: null,
   });
 
   useEffect(() => {
@@ -56,13 +64,13 @@ function Admin() {
     e.preventDefault();
     try {
       if (selectedEvent) {
-        await axios.put(`http://localhost:6000/api/events/${selectedEvent.id}`, formData);
+        await axios.put(`http://localhost:6000/api/events/${selectedEvent.id}`, eventFormData);
       } else {
-        await axios.post('http://localhost:6000/api/events', formData);
+        await axios.post('http://localhost:6000/api/events', eventFormData);
       }
       setOpenEventDialog(false);
       fetchData();
-      resetForm();
+      resetEventForm();
     } catch (error) {
       console.error('Error saving event:', error);
     }
@@ -72,15 +80,21 @@ function Admin() {
     e.preventDefault();
     try {
       const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        formDataToSend.append(key, formData[key]);
+      Object.keys(boothFormData).forEach(key => {
+        if (boothFormData[key] !== null) {
+          formDataToSend.append(key, boothFormData[key]);
+        }
       });
       formDataToSend.append('eventId', selectedEvent.id);
 
-      await axios.post('http://localhost:6000/api/booths', formDataToSend);
+      await axios.post('http://localhost:6000/api/booths', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       setOpenBoothDialog(false);
       fetchData();
-      resetForm();
+      resetBoothForm();
     } catch (error) {
       console.error('Error saving booth:', error);
     }
@@ -95,15 +109,26 @@ function Admin() {
     }
   };
 
-  const resetForm = () => {
-    setFormData({
+  const resetEventForm = () => {
+    setEventFormData({
       name: '',
       description: '',
       date: '',
       location: '',
-      image: null,
     });
     setSelectedEvent(null);
+  };
+
+  const resetBoothForm = () => {
+    setBoothFormData({
+      name: '',
+      description: '',
+      contact: '',
+      socialMedia: '',
+      location: '',
+      boothNumber: '',
+      photos: null,
+    });
   };
 
   return (
@@ -121,7 +146,7 @@ function Admin() {
                 <Button
                   variant="contained"
                   onClick={() => {
-                    resetForm();
+                    resetEventForm();
                     setOpenEventDialog(true);
                   }}
                 >
@@ -140,7 +165,7 @@ function Admin() {
                         edge="end"
                         onClick={() => {
                           setSelectedEvent(event);
-                          setFormData(event);
+                          setEventFormData(event);
                           setOpenEventDialog(true);
                         }}
                       >
@@ -165,7 +190,10 @@ function Admin() {
                 <Typography variant="h6">Booths</Typography>
                 <Button
                   variant="contained"
-                  onClick={() => setOpenBoothDialog(true)}
+                  onClick={() => {
+                    resetBoothForm();
+                    setOpenBoothDialog(true);
+                  }}
                   disabled={!selectedEvent}
                 >
                   Add Booth
@@ -201,52 +229,56 @@ function Admin() {
             {selectedEvent ? 'Edit Event' : 'Add New Event'}
           </DialogTitle>
           <DialogContent>
-            <Box component="form" onSubmit={handleEventSubmit} sx={{ mt: 2 }}>
+            <Box component="form" onSubmit={handleEventSubmit} sx={{ mt: 2 }} id="event-form">
               <TextField
                 fullWidth
                 label="Name"
-                value={formData.name}
+                value={eventFormData.name}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setEventFormData({ ...eventFormData, name: e.target.value })
                 }
                 margin="normal"
+                required
               />
               <TextField
                 fullWidth
                 label="Description"
                 multiline
                 rows={4}
-                value={formData.description}
+                value={eventFormData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  setEventFormData({ ...eventFormData, description: e.target.value })
                 }
                 margin="normal"
+                required
               />
               <TextField
                 fullWidth
                 label="Date"
                 type="date"
-                value={formData.date}
+                value={eventFormData.date}
                 onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
+                  setEventFormData({ ...eventFormData, date: e.target.value })
                 }
                 margin="normal"
                 InputLabelProps={{ shrink: true }}
+                required
               />
               <TextField
                 fullWidth
                 label="Location"
-                value={formData.location}
+                value={eventFormData.location}
                 onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
+                  setEventFormData({ ...eventFormData, location: e.target.value })
                 }
                 margin="normal"
+                required
               />
             </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenEventDialog(false)}>Cancel</Button>
-            <Button onClick={handleEventSubmit} variant="contained">
+            <Button type="submit" form="event-form" variant="contained" color="primary">
               Save
             </Button>
           </DialogActions>
@@ -256,58 +288,89 @@ function Admin() {
         <Dialog open={openBoothDialog} onClose={() => setOpenBoothDialog(false)}>
           <DialogTitle>Add New Booth</DialogTitle>
           <DialogContent>
-            <Box component="form" onSubmit={handleBoothSubmit} sx={{ mt: 2 }}>
+            <Box component="form" onSubmit={handleBoothSubmit} sx={{ mt: 2 }} id="booth-form">
               <TextField
                 fullWidth
                 label="Name"
-                value={formData.name}
+                value={boothFormData.name}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setBoothFormData({ ...boothFormData, name: e.target.value })
                 }
                 margin="normal"
+                required
               />
               <TextField
                 fullWidth
                 label="Description"
                 multiline
                 rows={4}
-                value={formData.description}
+                value={boothFormData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  setBoothFormData({ ...boothFormData, description: e.target.value })
                 }
                 margin="normal"
+                required
               />
               <TextField
                 fullWidth
                 label="Contact"
-                value={formData.contact}
+                value={boothFormData.contact}
                 onChange={(e) =>
-                  setFormData({ ...formData, contact: e.target.value })
+                  setBoothFormData({ ...boothFormData, contact: e.target.value })
+                }
+                margin="normal"
+                required
+              />
+              <TextField
+                fullWidth
+                label="Social Media"
+                value={boothFormData.socialMedia}
+                onChange={(e) =>
+                  setBoothFormData({ ...boothFormData, socialMedia: e.target.value })
                 }
                 margin="normal"
               />
               <TextField
                 fullWidth
-                label="Social Media"
-                value={formData.socialMedia}
+                label="Location"
+                value={boothFormData.location}
                 onChange={(e) =>
-                  setFormData({ ...formData, socialMedia: e.target.value })
+                  setBoothFormData({ ...boothFormData, location: e.target.value })
                 }
                 margin="normal"
+                required
               />
-              <input
-                type="file"
-                accept="image/*"
+              <TextField
+                fullWidth
+                label="Booth Number"
+                value={boothFormData.boothNumber}
                 onChange={(e) =>
-                  setFormData({ ...formData, image: e.target.files[0] })
+                  setBoothFormData({ ...boothFormData, boothNumber: e.target.value })
                 }
-                style={{ marginTop: '16px' }}
+                margin="normal"
+                required
               />
+              <Button
+                variant="outlined"
+                component="label"
+                fullWidth
+                sx={{ mt: 2 }}
+              >
+                Upload Photos
+                <input
+                  type="file"
+                  hidden
+                  multiple
+                  onChange={(e) =>
+                    setBoothFormData({ ...boothFormData, photos: e.target.files })
+                  }
+                />
+              </Button>
             </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenBoothDialog(false)}>Cancel</Button>
-            <Button onClick={handleBoothSubmit} variant="contained">
+            <Button onClick={handleBoothSubmit} variant="contained" color="primary">
               Save
             </Button>
           </DialogActions>
