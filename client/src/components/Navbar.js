@@ -31,7 +31,7 @@ import {
 
 const pages = [
   { name: 'Home', path: '/', icon: <HomeIcon /> },
-  { name: 'Events', path: '/events', icon: <EventIcon /> },
+  { name: 'Events', path: '/', icon: <EventIcon /> },
   { name: 'FAQ', path: '/faq', icon: <HelpIcon /> },
   { name: 'Privacy', path: '/privacy', icon: <PrivacyIcon /> },
 ];

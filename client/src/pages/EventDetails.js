@@ -24,19 +24,27 @@ function EventDetails() {
   const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
-    fetchEventDetails();
+    if (id) {
+      fetchEventDetails(id);
+      fetchBooths(id);
+    }
   }, [id]);
 
-  const fetchEventDetails = async () => {
+  const fetchEventDetails = async (eventId) => {
     try {
-      const [eventResponse, boothsResponse] = await Promise.all([
-        axios.get(`http://localhost:6000/api/events/${id}`),
-        axios.get(`http://localhost:6000/api/booths?eventId=${id}`),
-      ]);
-      setEvent(eventResponse.data);
-      setBooths(boothsResponse.data);
+      const response = await axios.get(`http://localhost:3001/api/events/${eventId}`);
+      setEvent(response.data);
     } catch (error) {
       console.error('Error fetching event details:', error);
+    }
+  };
+
+  const fetchBooths = async (eventId) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/api/booths?eventId=${eventId}`);
+      setBooths(response.data);
+    } catch (error) {
+      console.error('Error fetching booths:', error);
     }
   };
 
@@ -101,7 +109,7 @@ function EventDetails() {
                         {booth.description}
                       </Typography>
                       <Typography variant="body2">
-                        Products: {booth.products.join(', ')}
+                        Products: {Array.isArray(booth.products) ? booth.products.join(', ') : 'N/A'}
                       </Typography>
                       <Box sx={{ mt: 2 }}>
                         <Typography variant="body2">
@@ -111,6 +119,23 @@ function EventDetails() {
                           <Typography variant="body2">
                             Social: {booth.socialMedia}
                           </Typography>
+                        )}
+                        {/* Display Photos */}
+                        {Array.isArray(booth.photos) && booth.photos.length > 0 && (
+                          <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" gutterBottom>Photos:</Typography>
+                            <Grid container spacing={1}>
+                              {booth.photos.map((photo, index) => (
+                                <Grid item xs={4} sm={3} md={2} key={index}>
+                                  <img 
+                                    src={`http://localhost:3001/uploads/${photo}`} // Assuming uploads are served from /uploads
+                                    alt={`Booth photo ${index + 1}`}
+                                    style={{ width: '100%', height: 'auto', borderRadius: 4 }}
+                                  />
+                                </Grid>
+                              ))}
+                            </Grid>
+                          </Box>
                         )}
                       </Box>
                     </CardContent>

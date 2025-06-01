@@ -24,17 +24,33 @@ function Home() {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get('http://localhost:6000/api/events');
-      setEvents(response.data);
+      console.log('Attempting to fetch events...');
+      const response = await axios.get('http://localhost:3001/api/events');
+      console.log('Events fetched successfully:', response.data);
+      if (Array.isArray(response.data)) {
+        setEvents(response.data);
+      } else {
+        console.error('Fetched data is not an array:', response.data);
+        setEvents([]); // Set to empty array to prevent errors
+      }
     } catch (error) {
       console.error('Error fetching events:', error);
+      setEvents([]); // Set to empty array to prevent errors
     }
   };
 
-  const filteredEvents = events.filter(event =>
-    event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredEvents = events.filter(event => {
+    // Add checks for null/undefined before accessing properties
+    const nameMatch = event?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    const descriptionMatch = event?.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Check if products is an array before using .some()
+    const productsMatch = Array.isArray(event?.products) && event.products.some(product =>
+      product?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    return nameMatch || descriptionMatch || productsMatch;
+  });
 
   return (
     <Container maxWidth="lg">
