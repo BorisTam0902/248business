@@ -5,12 +5,13 @@ const path = require('path');
 const multer = require('multer');
 
 const app = express();
-const port = process.env.PORT || 6000;
+const port = 3001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+app.use('/uploads', express.static(path.join(__dirname, '../data/uploads')));
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -58,44 +59,91 @@ app.get('/api/events/:id', (req, res) => {
 });
 
 // Create new event
-app.post('/api/events', (req, res) => {
+app.post('/api/events', upload.single('image'), (req, res) => {
+  console.log('Received request to add new event...');
+  console.log('Request Body:', req.body);
+  console.log('Uploaded file:', req.file);
+
   const events = fs.readJsonSync(EVENTS_FILE);
   const newEvent = {
     id: Date.now().toString(),
     ...req.body,
+    image: req.file ? req.file.filename : null,
     createdAt: new Date().toISOString()
   };
   events.push(newEvent);
   fs.writeJsonSync(EVENTS_FILE, events);
+  console.log('New event added:', newEvent);
   res.status(201).json(newEvent);
 });
 
 // Update event
-app.put('/api/events/:id', (req, res) => {
+app.put('/api/events/:id', upload.single('image'), (req, res) => {
+  console.log(`Received request to update event with ID: ${req.params.id}`);
+  console.log('Request Body:', req.body);
+  console.log('Uploaded file:', req.file);
+
   const events = fs.readJsonSync(EVENTS_FILE);
   const index = events.findIndex(e => e.id === req.params.id);
-  if (index === -1) return res.status(404).json({ error: 'Event not found' });
-  
-  events[index] = { ...events[index], ...req.body, updatedAt: new Date().toISOString() };
+  if (index === -1) {
+    console.log(`Event with ID ${req.params.id} not found for update.`);
+    return res.status(404).json({ error: 'Event not found' });
+  }
+
+  const existingEvent = events[index];
+  const updatedEvent = {
+    ...existingEvent,
+    ...req.body,
+    image: req.file ? req.file.filename : existingEvent.image,
+    updatedAt: new Date().toISOString()
+  };
+
+  events[index] = updatedEvent;
   fs.writeJsonSync(EVENTS_FILE, events);
-  res.json(events[index]);
+  console.log('Event updated:', updatedEvent);
+  res.json(updatedEvent);
 });
 
 // Delete event
 app.delete('/api/events/:id', (req, res) => {
+  console.log(`Attempting to delete event with ID: ${req.params.id}`);
   const events = fs.readJsonSync(EVENTS_FILE);
+  const initialEventCount = events.length;
   const filteredEvents = events.filter(e => e.id !== req.params.id);
   fs.writeJsonSync(EVENTS_FILE, filteredEvents);
+  console.log(`Events after filtering: ${filteredEvents.length} (removed ${initialEventCount - filteredEvents.length})`);
+
+  // Also delete associated booths
+  console.log(`Attempting to delete booths for event ID: ${req.params.id}`);
+  const booths = fs.readJsonSync(BOOTHS_FILE);
+  const initialBoothCount = booths.length;
+  const filteredBooths = booths.filter(b => b.eventId !== req.params.id);
+  fs.writeJsonSync(BOOTHS_FILE, filteredBooths);
+  console.log(`Booths after filtering: ${filteredBooths.length} (removed ${initialBoothCount - filteredBooths.length})`);
+
   res.status(204).send();
 });
 
 // Booth routes
 app.get('/api/booths', (req, res) => {
   const booths = fs.readJsonSync(BOOTHS_FILE);
-  res.json(booths);
+  const eventId = req.query.eventId; // Get eventId from query parameters
+
+  if (eventId) {
+    // Filter booths by eventId if provided
+    const filteredBooths = booths.filter(booth => booth.eventId === eventId);
+    res.json(filteredBooths);
+  } else {
+    // Otherwise, return all booths
+    res.json(booths);
+  }
 });
 
 app.post('/api/booths', upload.array('photos', 5), (req, res) => {
+  console.log('Received request to add new booth...');
+  console.log('Request Body:', req.body);
+  console.log('Uploaded files:', req.files);
+
   const booths = fs.readJsonSync(BOOTHS_FILE);
   const newBooth = {
     id: Date.now().toString(),
@@ -105,7 +153,25 @@ app.post('/api/booths', upload.array('photos', 5), (req, res) => {
   };
   booths.push(newBooth);
   fs.writeJsonSync(BOOTHS_FILE, booths);
+  console.log('New booth added:', newBooth);
   res.status(201).json(newBooth);
+});
+
+// Delete booth
+app.delete('/api/booths/:id', (req, res) => {
+  console.log(`Attempting to delete booth with ID: ${req.params.id}`);
+  const booths = fs.readJsonSync(BOOTHS_FILE);
+  const initialBoothCount = booths.length;
+  const filteredBooths = booths.filter(b => b.id !== req.params.id);
+  fs.writeJsonSync(BOOTHS_FILE, filteredBooths);
+  console.log(`Booths after filtering: ${filteredBooths.length} (removed ${initialBoothCount - filteredBooths.length})`);
+
+  if (initialBoothCount === filteredBooths.length) {
+    console.log(`Booth with ID ${req.params.id} not found.`);
+    return res.status(404).json({ error: 'Booth not found' });
+  }
+
+  res.status(204).send();
 });
 
 // Search booths
